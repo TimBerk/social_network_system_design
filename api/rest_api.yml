@@ -1,0 +1,1280 @@
+openapi: 3.0.3
+info:
+  title: Swagger Travel Social Network - OpenAPI 3.0
+  description: |-
+    System Design социальной сети
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+servers:
+  - url: https://social-network.ru/api/v1/
+tags:
+  - name: auth
+    description: Авторизация пользователя
+  - name: user
+    description: Операции для работы с данными пользователя
+  - name: location
+    description: Операции для работы с данными локаций
+  - name: post
+    description: Операции для работы с данными постов
+  - name: comment
+    description: Операции для работы с данными комментариев
+  - name: like
+    description: Операции для работы с данными реакций
+  - name: photo
+    description: Операции для работы с данными фотографий
+  - name: subscribe
+    description: Операции для работы с данными подписок
+paths:
+  /auth/register/:
+    get:
+      tags:
+        - auth
+      summary: Регистрация нового пользователя.
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        '201':
+          description: Успешная регистрация.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+        '400':
+          description: Неправильный запрос.
+  /auth/login/:
+    get:
+      tags:
+        - auth
+      summary: Авторизация пользователя с получением токенов.
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Успешная авторизация.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+        '401':
+          description: Отправлен некорректный username или password.
+  /auth/logout/:
+    post:
+      tags:
+        - auth
+      summary: Завершение сессии пользователя.
+      operationId: logoutUser
+      parameters: []
+      responses:
+        default:
+          description: Сессия завершена.
+      security:
+        - ApiKeyAuth:
+            - write
+  /auth/token/:
+    post:
+      tags:
+        - auth
+      summary: Обновление access token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+              required:
+                - refresh_token
+      security:
+        - ApiKeyAuth:
+            - write
+      responses:
+        '200':
+          description: Token успешно обновлен.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                required:
+                  - access_token
+        '401':
+          description: Неавторизованный запрос.
+  
+  /profile/:
+    get:
+      summary: Получение данных профиля.
+      tags:
+        - user
+      security:
+        - ApiKeyAuth:
+            - read
+      responses:
+        '200':
+          description: Успешный ответ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Профиль не найден.
+
+    put:
+      summary: Обновление данных профиля.
+      tags:
+        - user
+      security:
+        - ApiKeyAuth:
+            - write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserWrite'
+      responses:
+        '200':
+          description: Профиль обновлен.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Неправильный запрос.
+        '401':
+          description: Неавторизованный запрос.
+
+    delete:
+      summary: Удаление профиля.
+      tags:
+        - user
+      security:
+        - ApiKeyAuth:
+            - write
+      responses:
+        '204':
+          description: Профиль удален.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Профиль не найден.
+  
+  /users/{userId}/subscribe/:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Подписаться на пользователя.
+      tags:
+        - subscribe
+      security:
+        - ApiKeyAuth:
+            - write
+      responses:
+        '201':
+          description: Успешная подписка.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пользователь не найден.
+
+    delete:
+      summary: Отменить подписку на пользователя.
+      tags:
+        - subscribe
+      security:
+        - ApiKeyAuth:
+            - write
+      responses:
+        '204':
+          description: Отписка успешная.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пользователь не найден.
+
+  /users/{userId}/subscriptions/:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Поиск по username.
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: Количество элементов для пропуска.
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Количество возвращаемых элементов.
+          schema:
+            type: integer
+      summary: Получение списка всех подписок пользователя.
+      tags:
+        - subscribe
+      security:
+        - ApiKeyAuth:
+            - read
+      responses:
+        '200':
+          description: Успешный ответ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionPagination'
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пользователь не найден.
+
+  /users/{userId}/subscribers/:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Поиск по username.
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: Количество элементов для пропуска.
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Количество возвращаемых элементов.
+          schema:
+            type: integer
+      summary: Получение списка всех подписчиков пользователя.
+      tags:
+        - subscribe
+      security:
+        - ApiKeyAuth:
+            - read
+      responses:
+        '200':
+          description: Успешный ответ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionPagination'
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пользователь не найден.
+  
+  /locations/:
+    post:
+      summary: Создать новую локацию.
+      tags:
+        - location
+      security:
+        - ApiKeyAuth:
+            - write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationWrite'
+      responses:
+        '201':
+          description: Локация создана.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '400':
+          description: Неправильный запрос.
+        '401':
+          description: Неавторизованный запрос.
+
+    get:
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Поиск по наименованию локации.
+          schema:
+            type: string
+        - name: country
+          in: query
+          required: false
+          description: Фильтр по стране.
+          schema:
+            type: integer
+        - name: lat
+          in: query
+          required: false
+          description: Фильтр по географической широте.
+          schema:
+            type: number
+        - name: lon
+          in: query
+          required: false
+          description: Фильтр по географической долготе.
+          schema:
+            type: number
+        - name: offset
+          in: query
+          description: Количество элементов для пропуска.
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Количество возвращаемых элементов.
+          schema:
+            type: integer
+
+      summary: Получение списка всех локаций.
+      tags:
+        - location
+      security:
+        - ApiKeyAuth:
+            - read
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LocationPagination'
+        '401':
+          description: Неавторизованный запрос.
+
+  /locations/{locationId}/:
+    parameters:
+      - name: locationId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Получение определенной локации по locationId.
+      tags:
+        - location
+      security:
+        - ApiKeyAuth:
+            - read
+      responses:
+        '200':
+          description: Успешный ответ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Локация не найдена.
+
+    put:
+      summary: Обновление определенной локации по locationId.
+      tags:
+        - location
+      security:
+        - ApiKeyAuth:
+            - write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationWrite'
+      responses:
+        '200':
+          description: Пост обновлен.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '400':
+          description: Неправильный запрос.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Локация не найдена.
+
+    delete:
+      summary: Удаление определенной локации по locationId.
+      tags:
+        - location
+      security:
+        - ApiKeyAuth:
+            - write
+      responses:
+        '204':
+          description: Локация удален.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Локация не найдена.
+
+  /posts/:
+    post:
+      summary: Создать новый пост.
+      tags:
+        - post
+      security:
+        - ApiKeyAuth:
+            - write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWrite'
+      responses:
+        '201':
+          description: Пост создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          description: Неправильный запрос.
+        '401':
+          description: Неавторизованный запрос.
+
+    get:
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Поиск по наименованию и описанию.
+          schema:
+            type: string
+        - name: order
+          in: query
+          required: false
+          description: Сортировка.
+          schema:
+            type: string
+            enum:
+              - likes # по популярности
+              - published_at # по дате публикации
+        - name: authorId
+          in: query
+          required: false
+          description: Фильтр по автору.
+          schema:
+            type: integer
+        - name: lat
+          in: query
+          required: false
+          description: Фильтр по географической широте.
+          schema:
+            type: number
+        - name: lon
+          in: query
+          required: false
+          description: Фильтр по географической долготе.
+          schema:
+            type: number
+        - name: offset
+          in: query
+          description: Количество элементов для пропуска.
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Количество возвращаемых элементов.
+          schema:
+            type: integer
+
+      summary: Получение списка всех постов.
+      tags:
+        - post
+      security:
+        - ApiKeyAuth:
+            - read
+      responses:
+        '200':
+          description: Успешный ответ.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostPagination'
+        '401':
+          description: Неавторизованный запрос.
+
+  /posts/{postId}/:
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Получение определенного поста по postId.
+      tags:
+        - post
+      security:
+        - ApiKeyAuth:
+            - read
+      responses:
+        '200':
+          description: Успешный ответ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пост не найден.
+
+    put:
+      summary: Обновление определенного поста по postId.
+      tags:
+        - post
+      security:
+        - ApiKeyAuth:
+            - write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWrite'
+      responses:
+        '200':
+          description: Пост обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          description: Неправильный запрос.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пост не найден.
+
+    delete:
+      summary: Удаление определенного поста по postId.
+      tags:
+        - post
+      security:
+        - ApiKeyAuth:
+            - write
+      responses:
+        '204':
+          description: Пост удален.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пост не найден.
+
+  /posts/{postId}/photos/:
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Загрузить фото к определенному посту.
+      tags:
+        - photo
+      security:
+        - ApiKeyAuth:
+            - write
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Фотография обновлена
+        '400':
+          description: Неправильный запрос.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пост не найден.
+
+    get:
+      parameters:
+        - name: offset
+          in: query
+          description: Количество элементов для пропуска.
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Количество возвращаемых элементов.
+          schema:
+            type: integer
+      summary: Получить список фото определенного поста.
+      tags:
+        - photo
+      security:
+        - ApiKeyAuth:
+            - read
+      responses:
+        '200':
+          description: Успешный ответ.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PhotoPagination'
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пост не найден.
+
+  /posts/{postId}/photos/{photoId}/:
+    parameters:
+      - name: photoId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      summary: Удалить фото к определенному посту.
+      tags:
+        - photo
+      security:
+        - ApiKeyAuth:
+            - write
+      responses:
+        '204':
+          description: Фотография удалена.
+        '400':
+          description: Неправильный запрос.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пост/фотография не найдены.
+
+  /posts/{postId}/comments/:
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Добавить комментарий к определенному посту
+      tags:
+        - comment
+      security:
+        - ApiKeyAuth:
+            - write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+      responses:
+        '201':
+          description: Комментарий добавлен
+        '400':
+          description: Неправильный запрос.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пост не найден.
+
+    get:
+      parameters:
+        - name: offset
+          in: query
+          description: Количество элементов для пропуска.
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Количество возвращаемых элементов.
+          schema:
+            type: integer
+      summary: Получить список комментариев к определенному посту.
+      tags:
+        - comment
+      security:
+        - ApiKeyAuth:
+            - read
+      responses:
+        '200':
+          description: Успешный ответ.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommentPagination'
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пост не найден.
+
+
+  /posts/{postId}/comments/{commentId}/:
+    parameters:
+      - name: commentId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      summary: Удалить комментарий к определенному посту.
+      tags:
+        - comment
+      security:
+        - ApiKeyAuth:
+            - write
+      responses:
+        '204':
+          description: Комментарий удален.
+        '400':
+          description: Неправильный запрос.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пост/комментарий не найдены.
+
+  /posts/{postId}/likes/:
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Поставить реакцию к определенному посту.
+      tags:
+        - like
+      security:
+        - ApiKeyAuth:
+            - write
+      responses:
+        '201':
+          description: Реакция поставлена
+        '401':
+          description: Неавторизованный запрос
+        '404':
+          description: Пост не найден.
+
+    delete:
+      summary: Удалить реакцию к определенному посту.
+      tags:
+        - like
+      security:
+        - ApiKeyAuth:
+            - write
+      responses:
+        '204':
+          description: Реакция убрана.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пост не найден.
+
+components:
+  schemas:
+    Country:
+      type: object
+      properties:
+        name:
+          description: Название.
+          type: string
+        code:
+          description: Код.
+          type: integer
+      required:
+        - latitude
+        - longitude
+
+    Location:
+      type: object
+      properties:
+        name:
+          description: Название.
+          type: string
+        country:
+          $ref: '#/components/schemas/Country'
+        latitude:
+          description: Географическая широта локации.
+          type: number
+          format: float
+        longitude:
+          description: Географическая долгота локации.
+          type: number
+          format: float
+      required:
+        - country
+        - latitude
+        - longitude
+
+    LocationWrite:
+      type: object
+      properties:
+        name:
+          description: Название.
+          type: string
+        country:
+          type: integer
+        latitude:
+          description: Географическая широта локации.
+          type: number
+          format: float
+        longitude:
+          description: Географическая долгота локации.
+          type: number
+          format: float
+      required:
+        - country
+        - latitude
+        - longitude
+
+    LocationPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Количество элементов.
+        page:
+          type: integer
+          description: Текущая страница.
+        limit:
+          type: integer
+          description: Количество элементов на страницу.
+        results:
+          type: array
+          description: Список локаций.
+          items:
+            $ref: '#/components/schemas/Location'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+          readOnly: true
+        email:
+          type: string
+          example: john@email.com
+        username:
+          type: string
+          example: wanderer
+        password:
+          type: string
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: James
+        photo:
+          description: Ссылка на фото.
+          type: string
+          example: https://social-network.ru/avatars/user-2024100410999.jpg
+        status:
+          description: Статус пользователя.
+          type: string
+          enum:
+            - online
+            - idle
+            - invisible
+          example: online
+        country:
+          $ref: '#/components/schemas/Country'
+      required:
+        - id
+        - email
+        - username
+        - password
+
+    UserWrite:
+      type: object
+      properties:
+        email:
+          type: string
+          example: john@email.com
+        username:
+          type: string
+          example: wanderer
+        password:
+          type: string
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: James
+        photo:
+          description: Ссылка на фото.
+          type: string
+          example: https://social-network.ru/avatars/user-2024100410999.jpg
+        status:
+          description: Статус пользователя.
+          type: string
+          enum:
+            - online
+            - idle
+            - invisible
+          example: online
+        country:
+          type: integer
+          format: int64
+          example: 10
+      required:
+        - email
+        - username
+        - password
+
+    UserPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Количество элементов.
+        page:
+          type: integer
+          description: Текущая страница.
+        limit:
+          type: integer
+          description: Количество элементов на страницу.
+        results:
+          type: array
+          description: Список пользователей.
+          items:
+            $ref: '#/components/schemas/User'
+
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+          readOnly: true
+        subscriber_id:
+          description: ID пользователя.
+          type: integer
+          format: int64
+          example: 10
+        target_user_id:
+          description: ID подписки.
+          type: integer  
+          format: int64
+          example: 11
+      required:
+        - id
+        - subscriber_id
+        - target_user_id
+
+    SubscriptionPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Количество элементов.
+        page:
+          type: integer
+          description: Текущая страница.
+        limit:
+          type: integer
+          description: Количество элементов на страницу.
+        results:
+          type: array
+          description: Список подписок.
+          items:
+            $ref: '#/components/schemas/Subscription'
+
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+          readOnly: true
+        slug:
+          description: Slug поста.
+          type: string
+        title:
+          description: Заголовок поста.
+          type: string
+        text:
+          description: Текcт поста.
+          type: string
+        likes:
+          description: Количество реакций.
+          type: integer
+          example: 150
+          readOnly: true
+        location:
+          $ref: '#/components/schemas/Location'
+        user:
+          $ref: '#/components/schemas/User'
+        created_at:
+          description: Дата публикации поста.
+          type: string
+          example: 2024-10-04 19:30:00
+          readOnly: true
+      required:
+        - id
+        - slug
+        - title
+        - text
+        - likes
+        - location
+        - user
+        - created_at
+
+    PostWrite:
+      type: object
+      properties:
+        slug:
+          description: Slug поста.
+          type: string
+        title:
+          description: Заголовок поста.
+          type: string
+        text:
+          description: Текcт поста.
+          type: string
+        location_id:
+          type: integer
+          format: int64
+          example: 1
+      required:
+        - slug
+        - title
+        - text
+        - location
+
+    PostPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Количество элементов.
+        page:
+          type: integer
+          description: Текущая страница.
+        limit:
+          type: integer
+          description: Количество элементов на страницу.
+        results:
+          type: array
+          description: Список постов.
+          items:
+            $ref: '#/components/schemas/Post'
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+          readOnly: true
+        parent_id:
+          description: ID родительского комментария.
+          type: integer
+          format: int64
+          example: 1
+        user_id:
+          description: ID пользователя.
+          type: integer
+          format: int64
+          example: 10
+        post_id:
+          description: ID поста.
+          type: integer  
+          format: int64
+          example: 11
+        text:
+          description: Текст комментария.
+          type: string
+        created_at:
+          description: Дата публикации комментария.
+          type: string
+          readOnly: true
+      required:
+        - id
+        - parent_id
+        - user_id
+        - post_id
+        - text
+        - created_at
+
+    CommentPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Количество элементов.
+        page:
+          type: integer
+          description: Текущая страница.
+        limit:
+          type: integer
+          description: Количество элементов на страницу.
+        results:
+          type: array
+          description: Список комментариев.
+          items:
+            $ref: '#/components/schemas/Comment'
+
+    Like:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+          readOnly: true
+        user_id:
+          description: ID пользователя.
+          type: integer
+          format: int64
+          example: 10
+        post_id:
+          description: ID поста.
+          type: integer
+          format: int64
+          example: 1
+        created_at:
+          description: Дата установки реакции.
+          type: string
+          readOnly: true
+      required:
+        - id
+        - user_id
+        - post_id
+        - created_at
+
+    Photo:
+      type: object
+      properties:
+        id:
+          description: Идентификатор.
+          type: string
+          readOnly: true
+        post_id:
+          description: ID поста.
+          type: integer
+          format: int64
+          example: 1
+        file_name:
+          description: Имя файла.
+          type: string
+          format: uri
+        url:
+          description: URL-фотографии.
+          type: string
+          format: uri
+        created_at:
+          description: Дата установки реакции.
+          type: string
+          readOnly: true
+      required:
+        - id
+        - url
+        - file_name
+        - post_id
+
+    PhotoPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Количество элементов.
+        page:
+          type: integer
+          description: Текущая страница.
+        limit:
+          type: integer
+          description: Количество элементов на страницу.
+        results:
+          type: array
+          description: Список фотографий.
+          items:
+            $ref: '#/components/schemas/Photo'
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
