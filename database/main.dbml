@@ -1,0 +1,84 @@
+Table Countries{
+    code integer [primary key]
+    name varchar
+}
+
+Table Locations {
+  id integer [primary key]
+  name varchar
+  latitude float
+  longitude float
+  country_id integer [ref: > Countries.code]
+  created_at timestamp
+}
+
+Table Users{
+    id integer [primary key]
+    email varchar
+    username varchar
+    password_hash varchar
+    first_name varchar
+    last_name varchar
+    photo varchar
+    status varchar
+    country_id integer [ref: > Countries.code]
+    created_at timestamp
+    updated_at timestamp
+}
+
+Table Subscriptions {
+    id integer [primary key]
+    subscriber_id int [ref: > Users.id]
+    target_user_id int [ref: > Users.id]
+    created_at timestamp
+}
+
+Table Posts{
+    id integer [primary key]
+    slug varchar
+    title varchar
+    text text
+    likes integer
+    location_id integer [ref: > Locations.id]
+    user_id integer [ref: > Users.id]
+    created_at timestamp
+    updated_at timestamp
+}
+
+Table Photos{
+    id integer [primary key]
+    post_id integer [ref: > Posts.id]
+    url varchar
+    file_name varchar
+    created_at timestamp
+}
+
+Table Comments{
+    id integer [primary key]
+    parent_id integer [ref: > Comments.id]
+    user_id integer [ref: > Users.id]
+    post_id integer [ref: > Posts.id]
+    text text
+    created_at timestamp
+}
+
+Table Likes{
+    id integer [primary key]
+    user_id integer [ref: > Users.id]
+    post_id integer [ref: > Posts.id]
+    created_at timestamp
+}
+
+
+// Связи
+Ref: Posts.user_id > Users.id // One-to-Many
+Ref: Photos.post_id > Posts.id // One-to-Many
+Ref: Comments.post_id > Posts.id // One-to-Many
+Ref: Likes.post_id > Posts.id // One-to-Many
+Ref: Comments.user_id > Users.id // One-to-Many
+Ref: Likes.user_id > Users.id // One-to-Many
+Ref: Posts.location_id > Locations.id // Many-to-One
+Ref: Locations.country_id > Countries.code // Many-to-One
+Ref: Users.country_id > Countries.code // Many-to-One
+Ref: Subscriptions.subscriber_id > Users.id // One-to-Many
+Ref: Subscriptions.target_user_id > Users.id // One-to-Many

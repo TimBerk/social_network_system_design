@@ -1,0 +1,41 @@
+Table Posts{
+    id integer [primary key]
+    slug varchar
+    title varchar
+    text text
+    likes integer
+    location_id integer
+    user_id integer
+    created_at timestamp
+    updated_at timestamp
+}
+
+Table Photos{
+    id integer [primary key]
+    post_id integer [ref: > Posts.id]
+    url varchar
+    file_name varchar
+    created_at timestamp
+}
+
+Table Comments{
+    id integer [primary key]
+    parent_id integer [ref: > Comments.id]
+    user_id integer
+    post_id integer [ref: > Posts.id]
+    text text
+    created_at timestamp
+}
+
+Table Likes{
+    id integer [primary key]
+    user_id integer
+    post_id integer [ref: > Posts.id]
+    created_at timestamp
+}
+
+
+// Связи
+Ref: Photos.post_id > Posts.id // One-to-Many
+Ref: Comments.post_id > Posts.id // One-to-Many
+Ref: Likes.post_id > Posts.id // One-to-Many

@@ -1,0 +1,16 @@
+Table Countries{
+    code integer [primary key]
+    name varchar
+}
+
+Table Locations {
+  id integer [primary key]
+  name varchar
+  latitude float
+  longitude float
+  country_id integer [ref: > Countries.code]
+  created_at timestamp
+}
+
+// Связи
+Ref: Locations.country_id > Countries.code // Many-to-One
