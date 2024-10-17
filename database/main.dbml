@@ -17,11 +17,17 @@ Table Users{
     email varchar
     username varchar
     password_hash varchar
+    country_id integer [ref: > Countries.code]
+    created_at timestamp
+    updated_at timestamp
+}
+
+Table Profiles{
+    user_id integer [ref: - Users.id]
     first_name varchar
     last_name varchar
     photo varchar
     status varchar
-    country_id integer [ref: > Countries.code]
     created_at timestamp
     updated_at timestamp
 }
@@ -39,23 +45,16 @@ Table Posts{
     title varchar
     text text
     likes integer
+    photos  json
     location_id integer [ref: > Locations.id]
     user_id integer [ref: > Users.id]
     created_at timestamp
     updated_at timestamp
 }
 
-Table Photos{
-    id integer [primary key]
-    post_id integer [ref: > Posts.id]
-    url varchar
-    file_name varchar
-    created_at timestamp
-}
-
 Table Comments{
     id integer [primary key]
-    parent_id integer [ref: > Comments.id]
+    reply_comment_id integer [ref: > Comments.id]
     user_id integer [ref: > Users.id]
     post_id integer [ref: > Posts.id]
     text text
@@ -72,7 +71,6 @@ Table Likes{
 
 // Связи
 Ref: Posts.user_id > Users.id // One-to-Many
-Ref: Photos.post_id > Posts.id // One-to-Many
 Ref: Comments.post_id > Posts.id // One-to-Many
 Ref: Likes.post_id > Posts.id // One-to-Many
 Ref: Comments.user_id > Users.id // One-to-Many
@@ -80,5 +78,6 @@ Ref: Likes.user_id > Users.id // One-to-Many
 Ref: Posts.location_id > Locations.id // Many-to-One
 Ref: Locations.country_id > Countries.code // Many-to-One
 Ref: Users.country_id > Countries.code // Many-to-One
+Ref: Profiles.user_id - Users.id // One-to-One
 Ref: Subscriptions.subscriber_id > Users.id // One-to-Many
 Ref: Subscriptions.target_user_id > Users.id // One-to-Many

@@ -4,23 +4,16 @@ Table Posts{
     title varchar
     text text
     likes integer
+    photos  json
     location_id integer
     user_id integer
     created_at timestamp
     updated_at timestamp
 }
 
-Table Photos{
-    id integer [primary key]
-    post_id integer [ref: > Posts.id]
-    url varchar
-    file_name varchar
-    created_at timestamp
-}
-
 Table Comments{
     id integer [primary key]
-    parent_id integer [ref: > Comments.id]
+    reply_comment_id integer [ref: > Comments.id]
     user_id integer
     post_id integer [ref: > Posts.id]
     text text
@@ -36,6 +29,5 @@ Table Likes{
 
 
 // Связи
-Ref: Photos.post_id > Posts.id // One-to-Many
 Ref: Comments.post_id > Posts.id // One-to-Many
 Ref: Likes.post_id > Posts.id // One-to-Many
