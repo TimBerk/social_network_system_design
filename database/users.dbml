@@ -1,0 +1,37 @@
+Table Countries{
+    code integer [primary key]
+    name varchar
+}
+
+Table Users{
+    id integer [primary key]
+    email varchar
+    username varchar
+    password_hash varchar
+    country_id integer [ref: > Countries.code]
+    created_at timestamp
+    updated_at timestamp
+}
+
+Table Profiles{
+    user_id integer [ref: - Users.id]
+    first_name varchar
+    last_name varchar
+    photo varchar
+    status varchar
+    created_at timestamp
+    updated_at timestamp
+}
+
+Table Subscriptions {
+    id integer [primary key]
+    subscriber_id int [ref: > Users.id]
+    target_user_id int [ref: > Users.id]
+    created_at timestamp
+}
+
+// Связи
+Ref: Users.country_id > Countries.code // Many-to-One
+Ref: Profiles.user_id - Users.id // One-to-One
+Ref: Subscriptions.subscriber_id > Users.id // One-to-Many
+Ref: Subscriptions.target_user_id > Users.id // One-to-Many
