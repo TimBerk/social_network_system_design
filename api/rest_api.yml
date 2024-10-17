@@ -24,7 +24,7 @@ tags:
     description: Операции для работы с данными реакций
   - name: photo
     description: Операции для работы с данными фотографий
-  - name: subscribe
+  - name: subscriptions
     description: Операции для работы с данными подписок
 paths:
   /auth/register/:
@@ -61,6 +61,8 @@ paths:
                     type: string
         '400':
           description: Неправильный запрос.
+        '500':
+          description: Ошибка сервера.
   /auth/login/:
     get:
       tags:
@@ -95,6 +97,8 @@ paths:
                     type: string
         '401':
           description: Отправлен некорректный username или password.
+        '500':
+          description: Ошибка сервера.
   /auth/logout/:
     post:
       tags:
@@ -141,8 +145,10 @@ paths:
                   - access_token
         '401':
           description: Неавторизованный запрос.
+        '500':
+          description: Ошибка сервера.
   
-  /profile/:
+  /profiles/:
     get:
       summary: Получение данных профиля.
       tags:
@@ -161,6 +167,8 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Профиль не найден.
+        '500':
+          description: Ошибка сервера.
 
     put:
       summary: Обновление данных профиля.
@@ -186,6 +194,8 @@ paths:
           description: Неправильный запрос.
         '401':
           description: Неавторизованный запрос.
+        '500':
+          description: Ошибка сервера.
 
     delete:
       summary: Удаление профиля.
@@ -201,8 +211,10 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Профиль не найден.
+        '500':
+          description: Ошибка сервера.
   
-  /users/{userId}/subscribe/:
+  /users/{userId}/subscriptions/:
     parameters:
       - name: userId
         in: path
@@ -212,7 +224,7 @@ paths:
     post:
       summary: Подписаться на пользователя.
       tags:
-        - subscribe
+        - subscriptions
       security:
         - ApiKeyAuth:
             - write
@@ -223,29 +235,9 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Пользователь не найден.
+        '500':
+          description: Ошибка сервера.
 
-    delete:
-      summary: Отменить подписку на пользователя.
-      tags:
-        - subscribe
-      security:
-        - ApiKeyAuth:
-            - write
-      responses:
-        '204':
-          description: Отписка успешная.
-        '401':
-          description: Неавторизованный запрос.
-        '404':
-          description: Пользователь не найден.
-
-  /users/{userId}/subscriptions/:
-    parameters:
-      - name: userId
-        in: path
-        required: true
-        schema:
-          type: string
     get:
       parameters:
         - name: q
@@ -266,7 +258,7 @@ paths:
             type: integer
       summary: Получение списка всех подписок пользователя.
       tags:
-        - subscribe
+        - subscriptions
       security:
         - ApiKeyAuth:
             - read
@@ -281,6 +273,25 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Пользователь не найден.
+        '500':
+          description: Ошибка сервера.
+
+    delete:
+      summary: Отменить подписку на пользователя.
+      tags:
+        - subscriptions
+      security:
+        - ApiKeyAuth:
+            - write
+      responses:
+        '204':
+          description: Отписка успешная.
+        '401':
+          description: Неавторизованный запрос.
+        '404':
+          description: Пользователь не найден.
+        '500':
+          description: Ошибка сервера.
 
   /users/{userId}/subscribers/:
     parameters:
@@ -309,7 +320,7 @@ paths:
             type: integer
       summary: Получение списка всех подписчиков пользователя.
       tags:
-        - subscribe
+        - subscriptions
       security:
         - ApiKeyAuth:
             - read
@@ -324,33 +335,10 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Пользователь не найден.
-  
-  /locations/:
-    post:
-      summary: Создать новую локацию.
-      tags:
-        - location
-      security:
-        - ApiKeyAuth:
-            - write
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LocationWrite'
-      responses:
-        '201':
-          description: Локация создана.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Location'
-        '400':
-          description: Неправильный запрос.
-        '401':
-          description: Неавторизованный запрос.
+        '500':
+          description: Ошибка сервера.
 
+  /locations/:
     get:
       parameters:
         - name: q
@@ -405,6 +393,8 @@ paths:
                   $ref: '#/components/schemas/LocationPagination'
         '401':
           description: Неавторизованный запрос.
+        '500':
+          description: Ошибка сервера.
 
   /locations/{locationId}/:
     parameters:
@@ -431,6 +421,8 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Локация не найдена.
+        '500':
+          description: Ошибка сервера.
 
     put:
       summary: Обновление определенной локации по locationId.
@@ -458,6 +450,8 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Локация не найдена.
+        '500':
+          description: Ошибка сервера.
 
     delete:
       summary: Удаление определенной локации по locationId.
@@ -473,6 +467,8 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Локация не найдена.
+        '500':
+          description: Ошибка сервера.
 
   /posts/:
     post:
@@ -499,6 +495,8 @@ paths:
           description: Неправильный запрос.
         '401':
           description: Неавторизованный запрос.
+        '500':
+          description: Ошибка сервера.
 
     get:
       parameters:
@@ -563,6 +561,8 @@ paths:
                   $ref: '#/components/schemas/PostPagination'
         '401':
           description: Неавторизованный запрос.
+        '500':
+          description: Ошибка сервера.
 
   /posts/{postId}/:
     parameters:
@@ -589,6 +589,8 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Пост не найден.
+        '500':
+          description: Ошибка сервера.
 
     put:
       summary: Обновление определенного поста по postId.
@@ -616,6 +618,8 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Пост не найден.
+        '500':
+          description: Ошибка сервера.
 
     delete:
       summary: Удаление определенного поста по postId.
@@ -631,16 +635,12 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Пост не найден.
+        '500':
+          description: Ошибка сервера.
 
-  /posts/{postId}/photos/:
-    parameters:
-      - name: postId
-        in: path
-        required: true
-        schema:
-          type: string
+  /photos/:
     post:
-      summary: Загрузить фото к определенному посту.
+      summary: Загрузить фото.
       tags:
         - photo
       security:
@@ -664,7 +664,9 @@ paths:
         '401':
           description: Неавторизованный запрос.
         '404':
-          description: Пост не найден.
+          description: Фото не найдено.
+        '500':
+          description: Ошибка сервера.
 
     get:
       parameters:
@@ -678,7 +680,7 @@ paths:
           description: Количество возвращаемых элементов.
           schema:
             type: integer
-      summary: Получить список фото определенного поста.
+      summary: Получить список фото.
       tags:
         - photo
       security:
@@ -696,9 +698,11 @@ paths:
         '401':
           description: Неавторизованный запрос.
         '404':
-          description: Пост не найден.
+          description: Фото не найдено.
+        '500':
+          description: Ошибка сервера.
 
-  /posts/{postId}/photos/{photoId}/:
+  /photos/{photoId}/:
     parameters:
       - name: photoId
         in: path
@@ -706,7 +710,7 @@ paths:
         schema:
           type: string
     delete:
-      summary: Удалить фото к определенному посту.
+      summary: Удалить фото.
       tags:
         - photo
       security:
@@ -720,7 +724,9 @@ paths:
         '401':
           description: Неавторизованный запрос.
         '404':
-          description: Пост/фотография не найдены.
+          description: Фотография не найдены.
+        '500':
+          description: Ошибка сервера.
 
   /posts/{postId}/comments/:
     parameters:
@@ -751,6 +757,8 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Пост не найден.
+        '500':
+          description: Ошибка сервера.
 
     get:
       parameters:
@@ -783,6 +791,8 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Пост не найден.
+        '500':
+          description: Ошибка сервера.
 
 
   /posts/{postId}/comments/{commentId}/:
@@ -808,6 +818,8 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Пост/комментарий не найдены.
+        '500':
+          description: Ошибка сервера.
 
   /posts/{postId}/likes/:
     parameters:
@@ -830,6 +842,8 @@ paths:
           description: Неавторизованный запрос
         '404':
           description: Пост не найден.
+        '500':
+          description: Ошибка сервера.
 
     delete:
       summary: Удалить реакцию к определенному посту.
@@ -845,6 +859,8 @@ paths:
           description: Неавторизованный запрос.
         '404':
           description: Пост не найден.
+        '500':
+          description: Ошибка сервера.
 
 components:
   schemas:
@@ -1039,7 +1055,7 @@ components:
           example: 11
       required:
         - id
-        - subscriber_id
+        - subscriptionsr_id
         - target_user_id
 
     SubscriptionPagination:
@@ -1086,6 +1102,10 @@ components:
           $ref: '#/components/schemas/Location'
         user:
           $ref: '#/components/schemas/User'
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Photo'
         created_at:
           description: Дата публикации поста.
           type: string
@@ -1117,6 +1137,10 @@ components:
           type: integer
           format: int64
           example: 1
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Photo'
       required:
         - slug
         - title
@@ -1232,17 +1256,12 @@ components:
           description: Идентификатор.
           type: string
           readOnly: true
-        post_id:
-          description: ID поста.
-          type: integer
-          format: int64
-          example: 1
         file_name:
           description: Имя файла.
           type: string
           format: uri
-        url:
-          description: URL-фотографии.
+        link:
+          description: URL-ссылка на фотографию.
           type: string
           format: uri
         created_at:
@@ -1253,7 +1272,6 @@ components:
         - id
         - url
         - file_name
-        - post_id
 
     PhotoPagination:
       type: object
