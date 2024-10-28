@@ -1,0 +1,36 @@
+@startuml Geo Service
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
+
+!include DEVICONS/nginx.puml
+!include DEVICONS/postgresql.puml
+!include DEVICONS/redis.puml
+!include FONTAWESOME/server.puml
+
+Person(admin, "Administrator", "Менеджер блога")
+Person(author, "Author", "Автор постов о путешествиях")
+Person(reader, "Reader", "Читатель")
+
+Container(loadBalancer, "Load Balancer", "Nginx", "", "nginx")
+
+System_Boundary(geo_service, "Geo Service", "Сервис для работы с гео-данными") {
+    Container(api, "Web API Service", "", "Сервис обработки гео-данных", "server")
+    Container(cache, "Cache Service", "Redis", "Сервис кэширования", "redis")
+
+    Container(pg_bouncer, "DB Load Balancer", "PgBouncer", "Балансировщик для БД", "server")
+    Container(postgresql, "DB Service", "PostGIS", "СУБД хранения данных", "postgresql")
+}
+System(google, "Google")
+
+Rel(admin, loadBalancer, "", "HTTPS")
+Rel(author, loadBalancer, "", "HTTPS")
+Rel(reader, loadBalancer, "", "HTTPS")
+
+Rel(loadBalancer, api, "Перенаправления пула соединений к 1 из образу приложения", "HTTPS")
+Rel(api, cache, "Хэширование данных локаций", "SSL/TLS")
+Rel(api, pg_bouncer, "Перенаправления пула соединений", "SSL/TLS")
+Rel(pg_bouncer, postgresql, "Хранение данных локация", "SSL/TLS")
+
+Rel(api, google, "Использование карт для визуализации", "HTTPS")
+@enduml
