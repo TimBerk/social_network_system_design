@@ -15,11 +15,10 @@ Person(reader, "Reader", "Читатель")
 Container(loadBalancer, "Load Balancer", "Nginx", "", "nginx")
 
 System_Boundary(geo_service, "Geo Service", "Сервис для работы с гео-данными") {
-    Container(api, "Web API Service", "", "Сервис обработки гео-данных", "server")
-    Container(cache, "Cache Service", "Redis", "Сервис кэширования", "redis")
+    Container(api, "Web API Service", "", "Сервис обработки гео-координат, популярных и ближайших локаций", "server")
+    Container(cache, "Cache Service", "Redis", "Сервис кэширования популярных гео-координат/локаций", "redis")
 
-    Container(pg_bouncer, "DB Load Balancer", "PgBouncer", "Балансировщик для БД", "server")
-    Container(postgresql, "DB Service", "PostGIS", "СУБД хранения данных", "postgresql")
+    Container(postgresql, "GeoDB", "PostGIS", "СУБД хранения локаций и их мета-данных", "postgresql")
 }
 System(google, "Google")
 
@@ -28,9 +27,8 @@ Rel(author, loadBalancer, "", "HTTPS")
 Rel(reader, loadBalancer, "", "HTTPS")
 
 Rel(loadBalancer, api, "Перенаправления пула соединений к 1 из образу приложения", "HTTPS")
-Rel(api, cache, "Хэширование данных локаций", "SSL/TLS")
-Rel(api, pg_bouncer, "Перенаправления пула соединений", "SSL/TLS")
-Rel(pg_bouncer, postgresql, "Хранение данных локация", "SSL/TLS")
+Rel(api, cache, "Кэширование данных локаций", "SSL/TLS")
+Rel(api, postgresql, "Хранение данных локаций", "SSL/TLS")
 
 Rel(api, google, "Использование карт для визуализации", "HTTPS")
 @enduml

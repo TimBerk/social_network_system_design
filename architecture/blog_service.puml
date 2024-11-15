@@ -19,14 +19,14 @@ Person(reader, "Reader", "Читатель")
 Container(loadBalancer, "Load Balancer", "Nginx", "", "nginx")
 
 System_Boundary(blog_service, "Blog Service", "", "", "kubernetes") {
-    Container(api, "Web API Service", "Сервис для работы с постами", "", "server")
-    Container(cache, "Cache Service", "Redis", "Сервис кэширования", "redis")
+    Container(api, "Web API Service", "", "Сервис для работы с постами/реакциями/медиа", "server")
+    Container(feed, "Feed API Service", "", "Сервис для подготовки лент", "server")
+    Container(cache, "Cache Service", "Redis", "Сервис кэширования постов и доп. информации о них", "redis")
 
-    Container(pg_bouncer, "DB Load Balancer", "PgBouncer", "Балансировщик для БД", "server")
-    Container(postgresql, "DB Service", "PostGIS", "СУБД хранения данных", "postgresql")
+    Container(postgresql, "PostsDB", "PostgreSQL", "СУБД хранения постов, реакций, комментариев", "postgresql")
 
-    Container(elastic_search, "Search Service", "ElastricSearch", "Поисковый сервис", "elasticsearch")
-    Container(s3, "Media Service", "MinIO", "Хранилище файлов", "file")
+    Container(elastic_search, "Search Service", "ElastricSearch", "Поисковый сервис для поиска по названию/описанию поста", "elasticsearch")
+    Container(s3, "Media Service", "MinIO", "Хранилище медиа-файлов для постов", "file")
 }
 
 Rel(admin, loadBalancer, "", "HTTPS")
@@ -34,11 +34,14 @@ Rel(author, loadBalancer, "", "HTTPS")
 Rel(reader, loadBalancer, "", "HTTPS")
 
 Rel(loadBalancer, api, "Перенаправления пула соединений к 1 из образу приложения", "HTTPS")
-Rel(api, cache, "Хэширование данных локаций", "SSL/TLS")
-Rel(api, pg_bouncer, "Перенаправления пула соединений", "SSL/TLS")
-Rel(pg_bouncer, postgresql, "Хранение данных локация", "SSL/TLS")
+Rel(api, cache, "Кэширование данных постов", "SSL/TLS")
+Rel(api, postgresql, "Хранение данных постов", "SSL/TLS")
+
+Rel(loadBalancer, feed, "Перенаправления пула соединений к 1 из образу приложения", "HTTPS")
+Rel(feed, cache, "Кэширование данных ленты", "SSL/TLS")
+Rel(feed, postgresql, "Получение данных локация", "SSL/TLS")
 
 Rel(api, elastic_search, "Поиск постов по наименованию/описанию", "HTTPS")
-Rel(api, s3, "Обработка медиа", "HTTPS")
+Rel(api, s3, "Получение/загрузка медиа", "HTTPS")
 Rel(loadBalancer, s3, "Получение медиа", "HTTPS")
 @enduml

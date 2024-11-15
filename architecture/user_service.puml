@@ -17,13 +17,12 @@ Person(reader, "Reader", "Читатель")
 Container(loadBalancer, "Load Balancer", "Nginx", "", "nginx")
 
 System_Boundary(user_service, "User service") {
-    Container(api, "Web API Service", "Сервис для работы с пользователями", "", "server")
-    Container(cache, "Cache Service", "Redis", "Сервис кэширования", "redis")
+    Container(api, "Web API Service", "", "Сервис для работы с пользователями", "server")
+    Container(cache, "Cache Service", "Redis", "Сервис кэширования профилей пользователей", "redis")
 
-    Container(pg_bouncer, "DB Load Balancer", "PgBouncer", "Балансировщик для БД", "server")
-    Container(postgresql, "DB Service", "PostGIS", "СУБД хранения данных", "postgresql")
+    Container(postgresql, "UsersDB", "PostgreSQL", "СУБД хранения пользователей/профилей и их мета информации", "postgresql")
 
-    Container(s3, "Media Service", "MinIO", "Хранилище файлов", "file")
+    Container(s3, "Media Service", "MinIO", "Хранилище медиа-файлов для пользователей", "file")
 }
 System(yandex, "Yandex")
 System(google, "Google")
@@ -34,11 +33,10 @@ Rel(reader, loadBalancer, "", "HTTPS")
 
 Rel(loadBalancer, api, "Перенаправления пула соединений к 1 из образу приложения", "HTTPS")
 
-Rel(api, cache, "Хэширование данных пользователя", "SSL/TLS")
-Rel(api, pg_bouncer, "Перенаправления пула соединений", "SSL/TLS")
-Rel(pg_bouncer, postgresql, "Хранение данных пользователя", "SSL/TLS")
+Rel(api, cache, "Кэширование данных пользователя", "SSL/TLS")
+Rel(api, postgresql, "Хранение данных пользователя", "SSL/TLS")
 
-Rel(api, s3, "Обработка медиа", "HTTPS")
+Rel(api, s3, "Получение/загрузка медиа", "HTTPS")
 Rel(loadBalancer, s3, "Получение медиа", "HTTPS")
 
 Rel(api, yandex, "Авторизация/регистрация пользователя", "HTTPS")
