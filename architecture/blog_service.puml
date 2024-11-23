@@ -1,0 +1,47 @@
+@startuml Blog service
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v3.0.0/icons
+
+!include DEVICONS/nginx.puml
+!include DEVICONS/postgresql.puml
+!include DEVICONS/redis.puml
+!include FONTAWESOME/server.puml
+!include ICONURL/devicons2/elasticsearch.puml
+!include ICONURL/devicons2/kubernetes.puml
+!include ICONURL/font-awesome/file.puml
+
+Person(admin, "Administrator", "Менеджер блога")
+Person(author, "Author", "Автор постов о путешествиях")
+Person(reader, "Reader", "Читатель")
+
+Container(loadBalancer, "Load Balancer", "Nginx", "", "nginx")
+
+System_Boundary(blog_service, "Blog Service", "", "", "kubernetes") {
+    Container(api, "Web API Service", "", "Сервис для работы с постами/реакциями/медиа", "server")
+    Container(feed, "Feed API Service", "", "Сервис для подготовки лент", "server")
+    Container(cache, "Cache Service", "Redis", "Сервис кэширования постов и доп. информации о них", "redis")
+
+    Container(postgresql, "PostsDB", "PostgreSQL", "СУБД хранения постов, реакций, комментариев", "postgresql")
+
+    Container(elastic_search, "Search Service", "ElastricSearch", "Поисковый сервис для поиска по названию/описанию поста", "elasticsearch")
+    Container(s3, "Media Service", "MinIO", "Хранилище медиа-файлов для постов", "file")
+}
+
+Rel(admin, loadBalancer, "", "HTTPS")
+Rel(author, loadBalancer, "", "HTTPS")
+Rel(reader, loadBalancer, "", "HTTPS")
+
+Rel(loadBalancer, api, "Перенаправления пула соединений к 1 из образу приложения", "HTTPS")
+Rel(api, cache, "Кэширование данных постов", "SSL/TLS")
+Rel(api, postgresql, "Хранение данных постов", "SSL/TLS")
+
+Rel(loadBalancer, feed, "Перенаправления пула соединений к 1 из образу приложения", "HTTPS")
+Rel(feed, cache, "Кэширование данных ленты", "SSL/TLS")
+Rel(feed, postgresql, "Получение данных локация", "SSL/TLS")
+
+Rel(api, elastic_search, "Поиск постов по наименованию/описанию", "HTTPS")
+Rel(api, s3, "Получение/загрузка медиа", "HTTPS")
+Rel(loadBalancer, s3, "Получение медиа", "HTTPS")
+@enduml

@@ -1,0 +1,44 @@
+@startuml User Service
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v3.0.0/icons
+
+!include DEVICONS/nginx.puml
+!include DEVICONS/postgresql.puml
+!include DEVICONS/redis.puml
+!include FONTAWESOME/server.puml
+!include ICONURL/font-awesome/file.puml
+
+Person(admin, "Administrator", "Менеджер блога")
+Person(author, "Author", "Автор постов о путешествиях")
+Person(reader, "Reader", "Читатель")
+
+Container(loadBalancer, "Load Balancer", "Nginx", "", "nginx")
+
+System_Boundary(user_service, "User service") {
+    Container(api, "Web API Service", "", "Сервис для работы с пользователями", "server")
+    Container(cache, "Cache Service", "Redis", "Сервис кэширования профилей пользователей", "redis")
+
+    Container(postgresql, "UsersDB", "PostgreSQL", "СУБД хранения пользователей/профилей и их мета информации", "postgresql")
+
+    Container(s3, "Media Service", "MinIO", "Хранилище медиа-файлов для пользователей", "file")
+}
+System(yandex, "Yandex")
+System(google, "Google")
+
+Rel(admin, loadBalancer, "", "HTTPS")
+Rel(author, loadBalancer, "", "HTTPS")
+Rel(reader, loadBalancer, "", "HTTPS")
+
+Rel(loadBalancer, api, "Перенаправления пула соединений к 1 из образу приложения", "HTTPS")
+
+Rel(api, cache, "Кэширование данных пользователя", "SSL/TLS")
+Rel(api, postgresql, "Хранение данных пользователя", "SSL/TLS")
+
+Rel(api, s3, "Получение/загрузка медиа", "HTTPS")
+Rel(loadBalancer, s3, "Получение медиа", "HTTPS")
+
+Rel(api, yandex, "Авторизация/регистрация пользователя", "HTTPS")
+Rel(api, google, "Авторизация/регистрация пользователя", "HTTPS")
+@enduml

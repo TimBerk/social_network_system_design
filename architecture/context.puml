@@ -1,0 +1,33 @@
+@startuml Main Schema
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(admin, "Administrator", "Менеджер блога")
+Person(author, "Author", "Автор постов о путешествиях")
+Person(reader, "Reader", "Читатель")
+
+System_Boundary(travel_blog, "Блог путешествий") {
+    System(user_service, "User Service", "Сервис для работы с пользователями")
+    System(blog_service, "Blog Service", "Сервис для публикации и работы с постами/медиа")
+    System(geo_service, "Geo Service", "Geo сервис для работы с координатами")
+}
+System(yandex, "Yandex")
+System(google, "Google")
+
+Rel(admin, blog_service, "Управляет правами, помогает пользователям", "HTTPS")
+Rel(author, blog_service, "Публикует посты, отвечает на комментарии", "HTTPS")
+Rel(reader, blog_service, "Просматривает контент, пишет комментарии и ставит реакции", "HTTPS")
+
+Rel(admin, user_service, "Управляет правами, помогает пользователям", "HTTPS")
+Rel(author, user_service, "Редактирует личные данные", "HTTPS")
+Rel(reader, user_service, "Редактирует личные данные", "HTTPS")
+
+Rel(user_service, yandex, "Авторизация/регистрация пользователя", "HTTPS")
+Rel(user_service, google, "Авторизация/регистрация пользователя", "HTTPS")
+
+Rel(admin, geo_service, "Редактирует данные о локациях", "HTTPS")
+Rel(author, geo_service, "Добавляет метки локаций для постов", "HTTPS")
+Rel(reader, geo_service, "Ищет локации по координатам", "HTTPS")
+
+Rel(geo_service, google, "Использование карт для визуализации", "HTTPS")
+
+@enduml
